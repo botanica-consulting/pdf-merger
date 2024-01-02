@@ -1,0 +1,57 @@
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        p {
+            margin: 0 10px 10px;
+            text-align: center;
+        }
+
+        #dropZone {
+            border: 2px dashed #007bff;
+            padding: 15px;
+            margin: 10px;
+            width: calc(100% - 20px);
+            max-width: 500px;
+            text-align: center;
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        #fileList {
+            list-style: none;
+            padding: 0;
+            width: calc(100% - 20px);
+            max-width: 500px;
+        }
+
+        #fileList li {
+            border: 1px solid #ddd;
+            margin-top: 5px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            cursor: move;
+        }
+
+        .button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+
+        #fileName {
+            margin: 10px;
+            padding: 10px;
+            width: calc(100% - 40px);
+            max-width: 480px;
+        }

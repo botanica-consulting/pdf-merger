@@ -3,39 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Merge PDFs with PDF-lib</title>
+    <title>Merge PDFs</title>
     <script src="https://unpkg.com/pdf-lib@latest/dist/pdf-lib.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 50px;
-        }
+    <link rel="stylesheet" href="style.css">
 
-        #fileList {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            max-width: 300px;
-        }
-
-        #dropZone {
-            border: 2px dashed #007bff;
-            padding: 20px;
-            margin: 10px;
-            width: 300px;
-            text-align: center;
-            color: #007bff;
-            cursor: pointer;
-        }
-
-        #mergeButton,
-        #downloadLink {
-            margin-top: 10px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <body>
@@ -46,73 +18,16 @@
     <div id="dropZone">Drop files here or click to add</div>
     <ul id="fileList"></ul>
 
+    <input type="text" id="fileName" placeholder="Enter file name (optional)" />
+
     <button id="mergeButton">Merge PDFs</button>
-    <a id="downloadLink" style="display: none;">Download Merged PDF</a>
 
-    <script>
-        let selectedFiles = [];
+    <p style="margin-top: 4em; font-size: 0.7em;">Visit our <a href="https://botanica.software/">Homepage</a> and check
+        out the project on
+        <a href="https://github.com/botanica-consulting/pdf-merger">GitHub</a>.
+    </p>
 
-        const fileList = document.getElementById('fileList');
-        const dropZone = document.getElementById('dropZone');
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.multiple = true;
-        input.accept = 'application/pdf';
-
-        input.addEventListener('change', () => handleFiles(Array.from(input.files)));
-        dropZone.addEventListener('click', () => input.click());
-        dropZone.addEventListener('dragover', (e) => e.preventDefault());
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            handleFiles(Array.from(e.dataTransfer.files));
-        });
-
-        function handleFiles(newFiles) {
-            selectedFiles = selectedFiles.concat(newFiles.filter(newFile =>
-                !selectedFiles.some(existingFile => existingFile.name === newFile.name)));
-            updateFileList();
-        }
-
-        function updateFileList() {
-            fileList.innerHTML = '';
-            selectedFiles.forEach(file => {
-                const li = document.createElement('li');
-                li.textContent = file.name;
-                fileList.appendChild(li);
-            });
-        }
-
-        document.getElementById('mergeButton').addEventListener('click', mergePdfs);
-
-        async function mergePdfs() {
-            const { PDFDocument } = PDFLib;
-            const mergedPdf = await PDFDocument.create();
-
-            for (const file of selectedFiles) {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await PDFDocument.load(arrayBuffer);
-                const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                pages.forEach(page => mergedPdf.addPage(page));
-            }
-
-            const mergedPdfBytes = await mergedPdf.save();
-            const timestamp = new Date().toISOString().replace(/[:-]/g, '').replace('T', '-').replace(/\..+/, '');
-            downloadBlob(mergedPdfBytes, `merged-${timestamp}.pdf`, "application/pdf");
-        }
-
-        function downloadBlob(blob, filename, mimeType) {
-            const blobUrl = URL.createObjectURL(new Blob([blob], { type: mimeType }));
-            const downloadLink = document.getElementById('downloadLink');
-            downloadLink.href = blobUrl;
-            downloadLink.download = filename;
-            downloadLink.style.display = 'block';
-            downloadLink.textContent = 'Download Merged PDF';
-        }
-    </script>
-
-    <p>Visit our <a href="https://botanica.software/">Homepage</a> and check out the project on <a
-            href="https://github.com/botanica-consulting/pdf-merger">GitHub</a>.</p>
-
+    <script src="script.js"></script>
 </body>
 
 </html>
