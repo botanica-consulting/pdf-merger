@@ -4,10 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Secure PDF Merger</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
     window.pdfjsLib = window['pdfjs-dist/build/pdf'];
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -21,8 +19,8 @@
   <p>Drag and drop PDF files here or click to select files. Your files are not uploaded to any server — all processing
     is done locally in your browser.</p>
 
-  <input type="text" id="fileName" placeholder="Enter file name (optional)" />
-  <button id="mergeButton">Merge PDFs</button>
+    <input type="text" id="fileName" placeholder="Enter file name (optional)" />
+    <button id="mergeButton">Merge PDFs</button>
 
   <div id="dropZone">Drop files here or click to add</div>
   <ul id="fileList"></ul>

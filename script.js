@@ -1,5 +1,6 @@
 let selectedFiles = [];
 
+const body = document;
 const fileList = document.getElementById('fileList');
 const dropZone = document.getElementById('dropZone');
 const input = document.createElement('input');
@@ -9,8 +10,8 @@ input.accept = 'application/pdf';
 
 input.addEventListener('change', () => handleFiles(Array.from(input.files)));
 dropZone.addEventListener('click', () => input.click());
-dropZone.addEventListener('dragover', (e) => e.preventDefault());
-dropZone.addEventListener('drop', (e) => {
+body.addEventListener('dragover', (e) => e.preventDefault());
+body.addEventListener('drop', (e) => {
     e.preventDefault();
     handleFiles(Array.from(e.dataTransfer.files));
 });
@@ -68,7 +69,7 @@ async function mergePdfs() {
 
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
-                const viewport = page.getViewport({ scale: 1.0 });
+                const viewport = page.getViewport({ scale: 2.0 });
 
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
