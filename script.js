@@ -45,19 +45,57 @@ document.getElementById('mergeButton').addEventListener('click', mergePdfs);
 async function mergePdfs() {
     const { PDFDocument } = PDFLib;
     const mergedPdf = await PDFDocument.create();
+    const pdfjsLib = window.pdfjsLib;
 
     for (const file of selectedFiles) {
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await PDFDocument.load(arrayBuffer);
-        const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-        pages.forEach(page => mergedPdf.addPage(page));
+
+        let pdfDoc;
+        let imported = false;
+
+        try {
+            pdfDoc = await PDFDocument.load(arrayBuffer);
+            const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+            pages.forEach(page => mergedPdf.addPage(page));
+            imported = true;
+        } catch (error) {
+            console.warn(`Direct import failed for ${file.name}, falling back to image rendering.`);
+        }
+
+        if (!imported) {
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1.0 });
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                await page.render({ canvasContext: context, viewport }).promise;
+
+                const imgData = canvas.toDataURL('image/png');
+                const imgBytes = await fetch(imgData).then(res => res.arrayBuffer());
+                const img = await mergedPdf.embedPng(imgBytes);
+
+                const newPage = mergedPdf.addPage([viewport.width, viewport.height]);
+                newPage.drawImage(img, {
+                    x: 0,
+                    y: 0,
+                    width: viewport.width,
+                    height: viewport.height
+                });
+            }
+        }
     }
 
     const mergedPdfBytes = await mergedPdf.save();
     const timestamp = new Date().toISOString().replace(/[:-]/g, '').replace('T', '-').replace(/\..+/, '');
     const userFileName = document.getElementById('fileName').value.trim();
-    const defaultFileName = `merged-${timestamp}.pdf`;
-    const finalFileName = userFileName || defaultFileName;
+    const finalFileName = userFileName || `merged-${timestamp}.pdf`;
 
     downloadBlob(mergedPdfBytes, finalFileName, "application/pdf");
 }
