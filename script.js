@@ -1,14 +1,24 @@
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.4.299/pdf.min.mjs';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.4.299/pdf.worker.min.mjs';
+
 let selectedFiles = [];
+let draggedFile = null;
 
 const body = document;
 const fileList = document.getElementById('fileList');
 const dropZone = document.getElementById('dropZone');
+const sortButton = document.getElementById('sortButton');
+const nameCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 const input = document.createElement('input');
 input.type = 'file';
 input.multiple = true;
 input.accept = 'application/pdf';
 
-input.addEventListener('change', () => handleFiles(Array.from(input.files)));
+input.addEventListener('change', () => {
+    handleFiles(Array.from(input.files));
+    input.value = '';
+});
 dropZone.addEventListener('click', () => input.click());
 body.addEventListener('dragover', (e) => e.preventDefault());
 body.addEventListener('drop', (e) => {
@@ -17,22 +27,45 @@ body.addEventListener('drop', (e) => {
 });
 
 function handleFiles(newFiles) {
-    selectedFiles = selectedFiles.concat(newFiles.filter(newFile =>
-        !selectedFiles.some(existingFile => existingFile.name === newFile.name)));
+    for (const file of newFiles) {
+        if (!file || typeof file.name !== 'string' || !file.name.trim() || file.size === 0 ||
+            (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name))) {
+            continue;
+        }
+        if (!selectedFiles.some(existingFile => existingFile.name === file.name)) {
+            selectedFiles.push(file);
+        }
+    }
     updateFileList();
 }
 
+sortButton.addEventListener('click', () => {
+    selectedFiles.sort((a, b) => nameCollator.compare(a.name, b.name));
+    updateFileList();
+});
+
 function updateFileList() {
     fileList.innerHTML = '';
+    sortButton.disabled = selectedFiles.length < 2;
     selectedFiles.forEach((file, index) => {
         const li = document.createElement('li');
         li.textContent = file.name;
         li.draggable = true;
-        li.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', index); });
+        li.addEventListener('dragstart', (e) => {
+            draggedFile = file;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', file.name);
+        });
+        li.addEventListener('dragend', () => { draggedFile = null; });
         li.addEventListener('dragover', (e) => { e.preventDefault(); });
         li.addEventListener('drop', (e) => {
             e.preventDefault();
-            const draggedIndex = e.dataTransfer.getData('text/plain');
+            // External file drops belong to the document's file intake handler.
+            if (e.dataTransfer.files.length > 0) return;
+            e.stopPropagation();
+            const draggedIndex = selectedFiles.indexOf(draggedFile);
+            draggedFile = null;
+            if (draggedIndex < 0 || draggedIndex === index) return;
             const targetIndex = index;
             [selectedFiles[targetIndex], selectedFiles[draggedIndex]] = [selectedFiles[draggedIndex], selectedFiles[targetIndex]];
             updateFileList();
@@ -46,7 +79,6 @@ document.getElementById('mergeButton').addEventListener('click', mergePdfs);
 async function mergePdfs() {
     const { PDFDocument } = PDFLib;
     const mergedPdf = await PDFDocument.create();
-    const pdfjsLib = window.pdfjsLib;
 
     for (const file of selectedFiles) {
         const arrayBuffer = await file.arrayBuffer();
